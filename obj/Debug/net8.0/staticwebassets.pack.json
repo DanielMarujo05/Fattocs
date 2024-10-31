@@ -1,0 +1,41 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\Daniel Marujo Silva\\OneDrive\\Desktop\\FattocsRh\\Fattocs\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Fattocs.bundle.scp.css",
+      "PackagePath": "staticwebassets\\Fattocs.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\Daniel Marujo Silva\\OneDrive\\Desktop\\FattocsRh\\Fattocs\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\Daniel Marujo Silva\\OneDrive\\Desktop\\FattocsRh\\Fattocs\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Daniel Marujo Silva\\OneDrive\\Desktop\\FattocsRh\\Fattocs\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Daniel Marujo Silva\\OneDrive\\Desktop\\FattocsRh\\Fattocs\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Fattocs.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.Fattocs.props",
+      "PackagePath": "build\\Fattocs.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.Fattocs.props",
+      "PackagePath": "buildMultiTargeting\\Fattocs.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.Fattocs.props",
+      "PackagePath": "buildTransitive\\Fattocs.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

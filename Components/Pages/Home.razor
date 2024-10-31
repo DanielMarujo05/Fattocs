@@ -1,0 +1,439 @@
+﻿@page "/"
+@using BlazorStrap.V5;
+@using BlazorStrap.Utilities
+@using Fattocs.Models
+@using BlazorComponentUtilities
+@using Fattocs.services
+@using Microsoft.AspNetCore.Components.Web
+@inject ListaTarefasServices ListaTarefasService
+@rendermode InteractiveServer
+
+
+<PageTitle>Lista De Tarefas</PageTitle>
+<BSToaster Position="BlazorStrap.Position.Fixed" />
+
+<!--FORMULÁRIO DE BUSCA-->
+@if (!adicionando) {
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-9 custom-form-container">    
+
+                <div class="title-container">
+                    <h5 class="title">Buscar/Adicionar Tarefa</h5>
+                </div>
+                <div class="row col-10">
+                    <div class="input-group justify-content-center">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="custom-form-control justify-content-center col-6" placeholder="Buscar Tarefa por nome" @bind="termoPesquisa" @oninput="AtualizarFiltroPesquisa">
+                        <div class="col-md-3 d-flex align-items-end ms-4">
+                        <button @onclick="iniciarAdicao" class="butn butn-gradient-add w-100">
+                            <i class="bi bi-patch-plus me-2"></i> Nova Tarefa
+                        </button>
+                       </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+<!--FORMULARIO DE ADIÇÃO-->
+@if (adicionando) {
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-9 custom-form-container">    
+
+                <div class="title-container">
+                    <h5 class="title">Adicionar Tarefa</h5>
+                </div>
+
+                <EditForm OnValidSubmit="AdicionarTarefa" Model="Tarefa" class="mt-2 custom-form">
+                    <BSInputGroup MarginBottom="BlazorStrap.Margins.Medium">
+                    <DataAnnotationsValidator/>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="custom-form-label">Nome:</label>
+                                <BSInput InputType="BlazorStrap.InputType.Text" class="custom-form-control" placeholder="Nome da Tarefa" @bind-Value="Tarefa.Nome" />
+
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="custom-form-label">Custo:</label>
+                                <BSInput InputType="BlazorStrap.InputType.Number" class="custom-form-control" placeholder="Custo da Tarefa" @bind-Value="Tarefa.Custo" />
+
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="custom-form-label">Data Limite:</label>
+                                <BSInput InputType="BlazorStrap.InputType.Date" class="custom-form-control" placeholder="Data Limite da Tarefa" @bind-Value="Tarefa.DataLimite" />
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end mb-3">
+                            <button type="submit" class="butn butn-gradient-add w-100 me-2">
+                                <i class="bi bi-patch-plus me-2"></i> Adicionar
+                            </button>
+                            <button type="button" @onclick="cancelarAdicao" class="butn butn-gradient-cancel w-100">
+                                <i class="fas fa-times me-2"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                </BSInputGroup>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    }
+
+
+
+    <!--EXIBIÇÃO DE TAREFAS-->
+    <div class="container-fluid col-lg-8">
+        <h2 class="table-title mt-3">Lista De Tarefas</h2>
+        @if (ListaDeTarefas.Count() == 0)
+        {
+            <div class="text-center mt-5">
+                <h3> Nenhum Conteudo Encontrado! </h3>
+            </div>
+        }
+        else
+        {
+            <div class="row justify-content-center align-items-center mt-2">
+                <div style="max-height: 400px; overflow-y: auto; width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr class="h5" style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
+                                <th style="padding: 1rem; text-align: center;" class="col-3">Nome</th>
+                                <th style="padding: 1rem; text-align: center;" class="col-3">Custo</th>
+                                <th style="padding: 1rem; text-align: center;" class="col-3">Data Limite</th>
+                                <th style="padding: 1rem; text-align: center;" class="col-3">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tarefas in tarefasFiltradas)
+                            {
+                                var editId = $"edicao_{tarefas.Id}";
+                                var removeId = $"remocao_{tarefas.Id}";
+
+                                <tr class="@(tarefas.Custo >= 1000.0 ? "h5 bg-warning bg-gradient" : "h5")">
+                                    <td style="padding: 1rem; text-align: center;">@tarefas.Nome</td>
+                                    <td style="padding: 1rem; text-align: center;">@tarefas.Custo</td>
+                                    <td style="padding: 1rem; text-align: center;">@tarefas.DataLimite.ToString("dd/MM/yyyy")</td>
+                                    <td style="padding: 1rem; text-align: center;">
+                                        <BSButton DataId="@editId" class="btn" @onclick="() => EditarTarefa(tarefas)">
+                                            <i class="bi bi-pencil-square h4"></i>
+                                        </BSButton>
+                                        <BSTooltip Target="@editId" Placement="BlazorStrap.Placement.Top">Edição</BSTooltip>
+
+                                        <BSButton DataId="@removeId" class="btn" @onclick="() => iniciarRemocao(tarefas)">
+                                            <i class="bi bi-trash3 h4"></i>
+                                        </BSButton>
+                                        <BSTooltip Target="@removeId" Placement="BlazorStrap.Placement.Top">Remoção</BSTooltip>
+
+                                        <button class="btn border-0" @onclick="() => MoverParaCima(tarefas)" disabled="@(tarefas == tarefasFiltradas.First())">
+                                            <i class="fa-regular fa-circle-up h4"></i>
+                                        </button>
+
+                                        <button class="btn border-0" @onclick="() => MoverParaBaixo(tarefas)" disabled="@(tarefas == tarefasFiltradas.Last())">
+                                            <i class="fa-regular fa-circle-down h4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        <div class="border-bottom col-12"></div>
+    </div>
+
+
+<!--MODAL DE EDIÇÃO DE TAREFAS-->
+
+@if (editando)
+{
+         
+             <div class="modal fade show" tabindex="-1" role="dialog" style="display: block; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Tarefa</h5>
+                    <button type="button" class="close" aria-label="Close" @onclick="CancelarEdicao">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm OnValidSubmit="SalvarEdicao" Model="TarefaTemp" class="mt-2 custom-form">
+                        <BSInputGroup MarginBottom="BlazorStrap.Margins.Medium">
+                            <DataAnnotationsValidator />
+                            <div class="row">
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="custom-form-label">Nome:</label>
+                                    <BSInput InputType="BlazorStrap.InputType.Text" class="custom-form-control" placeholder="Nome da Tarefa" @bind-Value="TarefaTemp.Nome" />                                    
+                                </div>
+
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="custom-form-label">Custo:</label>
+                                    <BSInput InputType="BlazorStrap.InputType.Text" class="custom-form-control" placeholder="Custo da Tarefa" @bind-Value="TarefaTemp.Custo" />
+                                </div>
+
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="custom-form-label">Data Limite:</label>
+                                    <BSInput InputType="BlazorStrap.InputType.DateTimeLocal" class="custom-form-control" placeholder="Data Limite da Tarefa" @bind-Value="TarefaTemp.DataLimite" />
+                                </div>
+                            </div>
+
+                            <!-- Botões -->
+                            <div class="row col-12 justify-content-end">
+                                <div class="col-md-3 mb-3">
+                                    <button type="submit" class="butn butn-gradient-add w-100">
+                                        <i class="bi bi-patch-plus me-2"></i> Salvar
+                                    </button>
+                                </div>
+                            </div>
+                        </BSInputGroup>
+                    </EditForm>
+                </div>
+                <div class="modal-footer col-12 justify-content-between">
+                    <button type="button" @onclick="CancelarEdicao" class="butn butn-gradient-cancel col-4">
+                        Cancelar
+                    </button>
+                    <button type="button" @onclick="CancelarEdicao" class="butn btn-secondary col-4 float-end">
+                        Concluído
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+}
+
+
+@if (removendo)
+{
+        <div class="modal fade show" tabindex="-1" role="dialog" style="display: block; background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Remover Tarefa</h5>
+                        <button type="button" class="close" aria-label="Close" @onclick="cancelarRemocao">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Tem certeza de que deseja remover a Tarefa: <strong>@Tarefa.Nome</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="cancelarRemocao">Cancelar</button>
+                        <button class="btn btn-danger" @onclick="deletarTarefa">Remover</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+}
+
+
+@code{
+    public List<ListaTarefas> ListaDeTarefas = new List<ListaTarefas>();
+    public ListaTarefas Tarefa { get; set; } = new ListaTarefas();
+    public bool adicionando = false;
+    public bool editando = false;
+    public bool removendo = false;
+    private string filtroPesquisa = string.Empty;
+    private string termoPesquisa = "";
+    private ListaTarefas TarefaTemp = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        try
+        {
+
+            ListaDeTarefas = await ListaTarefasService.GetAllAsync();
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exceção ao adicionar cliente: {ex.Message}");
+        }
+
+    }
+
+
+
+    public async Task EditarTarefa(ListaTarefas tarefa)
+    {
+
+        Tarefa = tarefa;
+        TarefaTemp = new ListaTarefas
+            {
+                Id=tarefa.Id,
+                Nome = tarefa.Nome,
+                Custo = tarefa.Custo,
+                DataLimite = tarefa.DataLimite,
+                Ordenacao = tarefa.Ordenacao
+            };
+        editando = true;
+    }
+
+
+    public void CancelarEdicao()
+    {
+        TarefaTemp = new ListaTarefas(); 
+        editando = false;
+    }
+
+
+    public async Task SalvarEdicao()
+    {
+
+        var response = await ListaTarefasService.UpdateTarefa(TarefaTemp.Id,TarefaTemp);
+
+        if (response.Success == false)
+        {
+
+            _toastService.Show("Edição Falhou", "Tarefa Já Existe!", BlazorStrap.BSColor.Danger);
+        }
+        else
+        {
+            _toastService.Show("Edição Feita", "Edição Aplicada a Tarefa", BlazorStrap.BSColor.Success);
+        }
+
+        TarefaTemp = new ListaTarefas();
+        editando = false;
+    }
+
+
+
+    //DELETE CLIENTE//
+
+    public async Task iniciarRemocao(ListaTarefas tarefa)
+    {
+        removendo = true;
+        Tarefa = tarefa;
+    }
+
+    public async Task cancelarRemocao()
+    {
+        removendo = false;
+        Tarefa = new ListaTarefas();
+    }
+
+    public async Task deletarTarefa()
+    {
+        try
+        {
+            await ListaTarefasService.DeleteById(Tarefa.Id);
+            _toastService.Show("Remoção Feita", "Tarefa Removida com Sucesso!", BlazorStrap.BSColor.Success);
+        }
+        catch
+        {
+            _toastService.Show("Erro", "Não Foi Possivel Deletar", BlazorStrap.BSColor.Danger);
+        }
+        ListaDeTarefas.Remove(Tarefa);
+        removendo = false;
+        Tarefa = new ListaTarefas();
+    }
+
+
+    //ADIÇÃO DE TAREFA//
+
+    public async Task AdicionarTarefa()
+    {      
+        var clienteComId = await ListaTarefasService.AddAsync(Tarefa);
+        if (clienteComId.Tarefa != null) {
+            ListaDeTarefas.Add(clienteComId.Tarefa);
+            _toastService.Show("Inclusão concluída", "Tarefa Adicionada!", BlazorStrap.BSColor.Success);
+        }
+        else if (clienteComId.Success == false)
+        {
+            // Exibe um toaster para duplicidade ao salvar
+            _toastService.Show("Inclusão Falhou", "Tarefa já Existe!", BlazorStrap.BSColor.Danger);
+        }              
+        cancelarAdicao();
+    }
+
+    private void iniciarAdicao()
+    {
+        Tarefa = new ListaTarefas();
+        adicionando = true;
+    }
+
+    private void cancelarAdicao()
+    {
+        adicionando = false;
+        Tarefa = new ListaTarefas();
+    }
+
+    //BUSCA DE TAREFAS//
+
+    private void AtualizarFiltroPesquisa(ChangeEventArgs e)
+    {
+        filtroPesquisa = e.Value.ToString();
+        termoPesquisa = filtroPesquisa;
+    }
+
+    private List<ListaTarefas> tarefasFiltradas => ListaDeTarefas
+       .Where(e => string.IsNullOrEmpty(filtroPesquisa) || e.Nome.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase))
+       .OrderBy(e => e.Ordenacao)
+       .ToList();
+
+
+    public async void MoverParaCima(ListaTarefas tarefa)
+    {
+
+        ListaDeTarefas = ListaDeTarefas.OrderBy(t => t.Ordenacao).ToList();
+
+        var index = ListaDeTarefas.IndexOf(tarefa);
+        if (index > 0)
+        {
+
+            var tarefaAcima = ListaDeTarefas[index - 1];
+
+
+            int? tempOrdenacao = tarefa.Ordenacao;
+            tarefa.Ordenacao = tarefaAcima.Ordenacao;
+            tarefaAcima.Ordenacao = tempOrdenacao;
+
+
+            await ListaTarefasService.UpdateTarefa(tarefa.Id, tarefa);
+            await ListaTarefasService.UpdateTarefa(tarefaAcima.Id, tarefaAcima);
+
+
+            ListaDeTarefas = ListaDeTarefas.OrderBy(t => t.Ordenacao).ToList();
+        }
+    }
+
+    public async void MoverParaBaixo(ListaTarefas tarefa)
+    {
+
+        ListaDeTarefas = ListaDeTarefas.OrderBy(t => t.Ordenacao).ToList();
+
+        var index = ListaDeTarefas.IndexOf(tarefa);
+        if (index < ListaDeTarefas.Count - 1)
+        {
+
+            var tarefaAbaixo = ListaDeTarefas[index + 1];
+
+
+            int? tempOrdenacao = tarefa.Ordenacao;
+            tarefa.Ordenacao = tarefaAbaixo.Ordenacao;
+            tarefaAbaixo.Ordenacao = tempOrdenacao;
+
+            // Atualiza no banco de dados
+            await ListaTarefasService.UpdateTarefa(tarefa.Id, tarefa);
+            await ListaTarefasService.UpdateTarefa(tarefaAbaixo.Id, tarefaAbaixo); 
+
+
+            ListaDeTarefas = ListaDeTarefas.OrderBy(t => t.Ordenacao).ToList();
+        }
+    }
+
+}
